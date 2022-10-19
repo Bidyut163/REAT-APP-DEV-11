@@ -4,6 +4,29 @@ const { validationResult } = require('express-validator');
 const validateInputAppeal = require('../../validation/appeal');
 const appealPdf = require('../../documents/appealPdf');
 
+// Multer setup
+const multer = require('multer');
+
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './data/uploads');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
+    },
+});
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
+
+const upload = multer({ storage: fileStorage, fileFilter: fileFilter });
+
 const fs = require('fs');
 const path = require('path');
 
@@ -21,72 +44,33 @@ const AppealState = require('../../models/AppealState');
 // @desc  Create an  Appeal
 // @access Private
 
-router.post('/appeals', validateInputAppeal, auth, async (req, res) => {
-    const errors = validationResult(req);
+router.post(
+    '/appeals',
+    upload.single('file'),
+    validateInputAppeal,
+    auth,
+    async (req, res) => {
+        const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-        // return res.status(400).json({ errors: errors.array() });
-        let errObj = {};
-        errors.array().map((error) => {
-            errObj[error.param] = error.msg;
-        });
-        return res.status(400).json(errObj);
-    }
+        if (!errors.isEmpty()) {
+            // return res.status(400).json({ errors: errors.array() });
+            let errObj = {};
+            errors.array().map((error) => {
+                errObj[error.param] = error.msg;
+            });
+            return res.status(400).json(errObj);
+        }
 
-    const {
-        fullname,
+        // for file upload
+        const doc = req.file;
 
-        ar_line1,
-        ar_line2,
-        ar_landmark,
-        ar_city,
-        ar_district,
-        ar_pin,
-        ar_state,
-        ar_country,
-        as_line1,
-        as_line2,
-        as_landmark,
-        as_city,
-        as_district,
-        as_pin,
-        as_state,
-        as_country,
-        appellant_mobile_no,
-        appellant_email_id,
-        res_fullname,
-        res_ao_line1,
-        res_ao_line2,
-        res_ao_landmark,
-        res_ao_city,
-        res_ao_district,
-        res_ao_pin,
-        res_ao_state,
-        res_ao_country,
-        res_as_line1,
-        res_as_line2,
-        res_as_landmark,
-        res_as_city,
-        res_as_district,
-        res_as_pin,
-        res_as_state,
-        res_as_country,
-        res_mobile_no,
-        res_email_id,
-        is_within_jurisdiction,
-        reg_num,
-        is_limitation_specified,
-        reason_for_delay,
-        facts_of_case,
-        ground_of_appeal,
-        reliefs_sought,
-        interim_order,
-        is_matter_pending,
-    } = req.body;
-    const appellantId = req.user.id;
+        if (!doc) {
+            return res.status(422).json({ msg: 'Attached file is not a pdf' });
+        }
 
-    try {
-        const appeal = Appeal.build({
+        const docUrl = doc.path;
+
+        const {
             fullname,
             ar_line1,
             ar_line2,
@@ -125,7 +109,7 @@ router.post('/appeals', validateInputAppeal, auth, async (req, res) => {
             res_as_country,
             res_mobile_no,
             res_email_id,
-            is_within_jurisdiction,
+            // is_within_jurisdiction,
             reg_num,
             is_limitation_specified,
             reason_for_delay,
@@ -134,27 +118,81 @@ router.post('/appeals', validateInputAppeal, auth, async (req, res) => {
             reliefs_sought,
             interim_order,
             is_matter_pending,
-            appellantId,
-        });
+        } = req.body;
+        const appellantId = req.user.id;
 
-        await appeal.save();
+        try {
+            const appeal = Appeal.build({
+                fullname,
+                ar_line1,
+                ar_line2,
+                ar_landmark,
+                ar_city,
+                ar_district,
+                ar_pin,
+                ar_state,
+                ar_country,
+                as_line1,
+                as_line2,
+                as_landmark,
+                as_city,
+                as_district,
+                as_pin,
+                as_state,
+                as_country,
+                appellant_mobile_no,
+                appellant_email_id,
+                res_fullname,
+                res_ao_line1,
+                res_ao_line2,
+                res_ao_landmark,
+                res_ao_city,
+                res_ao_district,
+                res_ao_pin,
+                res_ao_state,
+                res_ao_country,
+                res_as_line1,
+                res_as_line2,
+                res_as_landmark,
+                res_as_city,
+                res_as_district,
+                res_as_pin,
+                res_as_state,
+                res_as_country,
+                res_mobile_no,
+                res_email_id,
+                // is_within_jurisdiction,
+                reg_num,
+                is_limitation_specified,
+                reason_for_delay,
+                facts_of_case,
+                ground_of_appeal,
+                reliefs_sought,
+                interim_order,
+                is_matter_pending,
+                docUrl,
+                appellantId,
+            });
 
-        const appealState = AppealState.build({
-            appellant: 0,
-            receptionist: 1,
-            registrar: 0,
-            bench: 0,
-            appealId: appeal.id,
-        });
+            await appeal.save();
 
-        await appealState.save();
+            const appealState = AppealState.build({
+                appellant: 0,
+                receptionist: 1,
+                registrar: 0,
+                bench: 0,
+                appealId: appeal.id,
+            });
 
-        res.json(appeal);
-    } catch (err) {
-        console.log(err.message);
-        res.status(500).send('Server Error');
+            await appealState.save();
+
+            res.json(appeal);
+        } catch (err) {
+            console.log(err.message);
+            res.status(500).send('Server Error');
+        }
     }
-});
+);
 
 // @route GET api/appellant/appeals
 // @desc  View all appeals

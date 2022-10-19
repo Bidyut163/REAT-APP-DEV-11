@@ -213,8 +213,7 @@ module.exports = function (pdfDoc, appeal) {
     pdfDoc
         .fontSize(11)
         .text(
-            'a) The appellant declares that the subject matter of the appeal falls within the jurisdiction of the Appellate Tribunal: ' +
-                (appeal.is_within_jurisdiction ? 'Yes' : 'No'),
+            'a) The appellant declares that the subject matter of the appeal falls within the jurisdiction of the Appellate Tribunal: Yes',
             {
                 align: 'left',
             }
@@ -364,7 +363,7 @@ module.exports = function (pdfDoc, appeal) {
         .moveDown(0.5);
     pdfDoc
         .fontSize(11)
-        .text(' ii)  Mode : ', {
+        .text(' ii)  Mode : Online', {
             align: 'left',
         })
         .moveDown(2.0);

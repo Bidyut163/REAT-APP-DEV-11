@@ -1,9 +1,11 @@
+import _ from 'lodash';
 import React, { useState } from 'react';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { createAppeal } from '../../actions/appeal';
 
 import CreateAppealDetails from './CreateAppealDetails';
+import CreateAppealFileUpload from './CreateAppealFileUpload';
 import CreateAppealConfirm from './CreateAppealConfirm';
 import './CreateAppeal.css';
 
@@ -48,7 +50,7 @@ const FormC = ({ createAppeal, history }) => {
         res_as_country: '',
         res_mobile_no: '',
         res_email_id: '',
-        is_within_jurisdiction: true,
+        // is_within_jurisdiction: true,
         reg_num: '',
         is_limitation_specified: true,
         reason_for_delay: '',
@@ -56,8 +58,11 @@ const FormC = ({ createAppeal, history }) => {
         ground_of_appeal: '',
         reliefs_sought: '',
         interim_order: '',
-        is_matter_pending: true,
+        is_matter_pending: '',
     });
+
+    const [fileData, setFileData] = useState();
+    const [filename, setFilename] = useState('Choose a file');
 
     // Proceed to next step
     const nextStep = () => {
@@ -77,10 +82,21 @@ const FormC = ({ createAppeal, history }) => {
         setFormData({ ...formData, [e.target.name]: e.target.checked });
     };
 
+    // on change handler for Files
+    const onFileChange = (e) => {
+        setFileData(e.target.files[0]);
+        setFilename(e.target.files[0].name);
+    };
+
     const onSubmit = (e) => {
         e.preventDefault();
 
-        createAppeal(formData, history);
+        const data = new FormData();
+        _.mapKeys(formData, (value, key) => {
+            data.append(key, value);
+        });
+        data.append('file', fileData);
+        createAppeal(data, history);
     };
 
     switch (step) {
@@ -94,7 +110,19 @@ const FormC = ({ createAppeal, history }) => {
                     nextStep={nextStep}
                 />
             );
+
         case 2:
+            return (
+                <CreateAppealFileUpload
+                    fileData={fileData}
+                    filename={filename}
+                    onFileChange={onFileChange}
+                    prevStep={prevStep}
+                    nextStep={nextStep}
+                />
+            );
+
+        case 3:
             return (
                 <CreateAppealConfirm
                     prevStep={prevStep}

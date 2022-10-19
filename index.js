@@ -5,26 +5,26 @@ const sequelize = require('./util/database');
 
 const app = express();
 
-// Multer -set up
-const multer = require('multer');
+//Multer -set up
+// const multer = require('multer');
 
-const fileStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './data/uploads');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
-    },
-});
+// const fileStorage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, './data/uploads');
+//     },
+//     filename: (req, file, cb) => {
+//         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+//         cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
+//     },
+// });
 
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-        cb(null, true);
-    } else {
-        cb(null, false);
-    }
-};
+// const fileFilter = (req, file, cb) => {
+//     if (file.mimetype === 'application/pdf') {
+//         cb(null, true);
+//     } else {
+//         cb(null, false);
+//     }
+// };
 
 // Models
 const Appellant = require('./models/Appellant');
@@ -36,9 +36,9 @@ const RevertedAppeal = require('./models/RevertedAppeal');
 
 // Init Middleware
 app.use(express.json({ extended: false }));
-app.use(
-    multer({ storage: fileStorage, fileFilter: fileFilter }).single('file')
-);
+// app.use(
+//     multer({ storage: fileStorage, fileFilter: fileFilter }).single('file')
+// );
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // app.get('/', (req, res) => res.send('API IS RUNNING'));

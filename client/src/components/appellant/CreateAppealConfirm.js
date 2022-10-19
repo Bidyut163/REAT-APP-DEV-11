@@ -202,9 +202,10 @@ const CreateAppealConfirm = ({ prevStep, values, onSubmit }) => {
                                             </div>
                                             <div className="col-sm-6 text-right">
                                                 <strong>
-                                                    {values.is_within_jurisdiction
+                                                    {/* {values.is_within_jurisdiction
                                                         ? ' Yes '
-                                                        : ' No'}
+                                                        : ' No'} */}
+                                                    Yes
                                                 </strong>
                                             </div>
                                         </div>
@@ -398,8 +399,8 @@ const CreateAppealConfirm = ({ prevStep, values, onSubmit }) => {
                                     </div>
                                     <div className="col-sm-6 text-right">
                                         <strong>
-                                            {values.is_matter_pending
-                                                ? ' Yes '
+                                            {values.is_matter_pending === '1'
+                                                ? ' Yes. Not Pending before any court '
                                                 : ' No'}
                                         </strong>
                                     </div>
